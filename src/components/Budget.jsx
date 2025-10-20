@@ -4,7 +4,7 @@ function buildDays(monthLength = 30) {
   return Array.from({ length: monthLength }, (_, i) => ({ day: i + 1 }))
 }
 
-export default function Budget({ budgetAmount, tickets, setTickets }) {
+export default function Budget({ budgetAmount, tickets, setTickets, paySources = [], effectiveIncome = 0 }) {
   const [monthLength, setMonthLength] = useState(30)
 
   const days = useMemo(() => buildDays(monthLength), [monthLength])
@@ -42,6 +42,34 @@ export default function Budget({ budgetAmount, tickets, setTickets }) {
     setMonthLength(n)
   }
 
+  // compute paydays for the month from paySources
+  const paydaysMap = useMemo(() => {
+    const map = Array.from({ length: monthLength }, () => 0)
+    paySources.forEach(p => {
+      if (p.type === 'fixed' && Number(p.amount)) {
+        const daysList = (p.days || '').toString().split(',').map(s => Number(s.trim())).filter(Boolean)
+        daysList.forEach(d => { if (d >= 1 && d <= monthLength) map[d - 1] += Number(p.amount) })
+      }
+      if (p.type === 'interval' && Number(p.amount) && Number(p.intervalWeeks) && Number(p.anchorDay)) {
+        // place pays starting from anchorDay every intervalWeeks until month end (approx)
+        let day = Number(p.anchorDay)
+        const step = Number(p.intervalWeeks) * 7
+        while (day <= monthLength) {
+          if (day >= 1 && day <= monthLength) map[day - 1] += Number(p.amount)
+          day += step
+        }
+      }
+      if (p.type === 'hourly' && Number(p.wage) && Number(p.hoursPerWeek)) {
+        // compute monthly amount and place on anchorDay
+        const annual = Number(p.wage) * Number(p.hoursPerWeek) * 52
+        const monthly = annual / 12
+        const d = Number(p.anchorDay) || 1
+        if (d >= 1 && d <= monthLength) map[d - 1] += monthly
+      }
+    })
+    return map
+  }, [paySources, monthLength])
+
   return (
     <div className="card">
       <h2>Budget</h2>
@@ -71,20 +99,34 @@ export default function Budget({ budgetAmount, tickets, setTickets }) {
         ))}
       </div>
 
-      <h3>Per-day view</h3>
-      <div className="days">
-        {days.map((d, i) => (
-          <div key={d.day} className="day">
-            <div className="day-header">Day {d.day}</div>
-            <div>Assigned: ${assignedTotalsByDay[i].toFixed(2)}</div>
-            <div>Daily avg remaining: ${averagePerDay.toFixed(2)}</div>
-            <div>
-              {tickets.filter(t => t.day === d.day).map(a => (
-                <div key={a.id} className="ticket-small">{a.name}: ${Number(a.amount || 0).toFixed(2)}</div>
-              ))}
+      <h3>Calendar</h3>
+      <div className="calendar">
+        {(() => {
+          const weeks = []
+          for (let i = 0; i < days.length; i += 7) {
+            weeks.push(days.slice(i, i + 7))
+          }
+          return weeks.map((week, wi) => (
+            <div key={wi} className="week-row">
+              {week.map((d, i) => {
+                const idx = wi * 7 + i
+                return (
+                  <div key={d.day} className="day">
+                    <div className="day-header">Day {d.day}</div>
+                    {paydaysMap[idx] ? <div className="payday">Pay: ${paydaysMap[idx].toFixed(2)}</div> : null}
+                    <div>Assigned: ${assignedTotalsByDay[idx].toFixed(2)}</div>
+                    <div>Daily avg remaining: ${averagePerDay.toFixed(2)}</div>
+                    <div>
+                      {tickets.filter(t => t.day === d.day).map(a => (
+                        <div key={a.id} className="ticket-small">{a.name}: ${Number(a.amount || 0).toFixed(2)}</div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
-          </div>
-        ))}
+          ))
+        })()}
       </div>
     </div>
   )

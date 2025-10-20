@@ -1,0 +1,11 @@
+:root{--bg:#f6f8fb;--card:#fff;--accent:#0366d6}
+body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:var(--bg);color:#0b2545}
+.container{max-width:980px;margin:24px auto;padding:16px}
+.forms{display:flex;gap:12px}
+.card{background:var(--card);padding:12px;border-radius:8px;box-shadow:0 1px 3px rgba(11,37,69,0.06);flex:1}
+.row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+input[type=number],input[type=text],select{padding:6px;border-radius:6px;border:1px solid #dfe6ef}
+.ticket{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.days{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:12px}
+.day{background:#fbfdff;padding:8px;border-radius:6px;border:1px solid #e9f0fb}
+.ticket-small{font-size:0.9em;padding:4px 0}

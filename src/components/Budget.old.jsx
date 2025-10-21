@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 
 function getDaysInMonth(month, year) {
   return new Date(year, month + 1, 0).getDate()
@@ -59,54 +59,6 @@ function buildDays(month, year) {
   return [...paddingDaysBefore, ...currentDays, ...paddingDaysAfter]
 }
 
-function CalendarDay({ day, payAmount, assignedAmount, averagePerDay, tickets }) {
-  return (
-    <div className={`day ${day.isToday ? 'today' : ''} ${day.isPadding ? 'padding' : ''}`}>
-      <div className="day-header">
-        <span className="day-number">{day.day}</span>
-        {day.isToday && <span className="today-label">Today</span>}
-      </div>
-      {!day.isPadding && (
-        <>
-          {payAmount > 0 && <div className="payday">Pay: ${payAmount.toFixed(2)}</div>}
-          <div>Assigned: ${assignedAmount.toFixed(2)}</div>
-          <div>Daily avg: ${averagePerDay.toFixed(2)}</div>
-          <div>
-            {tickets.filter(t => t.day === day.day).map(ticket => (
-              <div key={ticket.id} className="ticket-small">
-                {ticket.name}: ${Number(ticket.amount || 0).toFixed(2)}
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  )
-}
-
-function WeekRow({ week, weekIndex, paySourcesByDay, assignedTotalsByDay, averagePerDay, tickets }) {
-  return (
-    <div className="week-row">
-      {week.map((day, dayIndex) => {
-        const idx = day.isPadding ? -1 : weekIndex * 7 + dayIndex
-        const payAmount = idx >= 0 ? (paySourcesByDay[idx] || 0) : 0
-        const assignedAmount = idx >= 0 ? (assignedTotalsByDay[idx] || 0) : 0
-        
-        return (
-          <CalendarDay
-            key={`${day.date.getMonth()}-${day.day}`}
-            day={day}
-            payAmount={payAmount}
-            assignedAmount={assignedAmount}
-            averagePerDay={averagePerDay}
-            tickets={tickets}
-          />
-        )
-      })}
-    </div>
-  )
-}
-
 export default function Budget({ budgetAmount, tickets, setTickets, paySources = [], effectiveIncome = 0 }) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [monthLength, setMonthLength] = useState(getDaysInMonth(currentDate.getMonth(), currentDate.getFullYear()))
@@ -125,45 +77,7 @@ export default function Budget({ budgetAmount, tickets, setTickets, paySources =
   const days = useMemo(() => buildDays(currentDate.getMonth(), currentDate.getFullYear()), 
     [currentDate])
 
-  function updateTicket(id, changes) {
-    setTickets(tickets.map(t => t.id === id ? { ...t, ...changes } : t))
-  }
-
-  function assignTicketToDay(id, day) {
-    updateTicket(id, { day })
-  }
-
-  function addTicket() {
-    const t = { id: Date.now(), name: 'New Ticket', amount: '', day: null }
-    setTickets([...tickets, t])
-  }
-
-  const paySourcesByDay = useMemo(() => {
-    const map = Array.from({ length: monthLength }, () => 0)
-
-    paySources.forEach(p => {
-      if (p.type === 'fixed' && Number(p.amount) && Number(p.anchorDay)) {
-        const d = Number(p.anchorDay)
-        if (d >= 1 && d <= monthLength) map[d - 1] += Number(p.amount)
-      }
-      if (p.type === 'interval' && Number(p.amount) && Number(p.intervalWeeks) && Number(p.anchorDay)) {
-        let day = Number(p.anchorDay)
-        const step = Number(p.intervalWeeks) * 7
-        while (day <= monthLength) {
-          if (day >= 1 && day <= monthLength) map[day - 1] += Number(p.amount)
-          day += step
-        }
-      }
-      if (p.type === 'hourly' && Number(p.wage) && Number(p.hoursPerWeek)) {
-        const annual = Number(p.wage) * Number(p.hoursPerWeek) * 52
-        const monthly = annual / 12
-        const d = Number(p.anchorDay) || 1
-        if (d >= 1 && d <= monthLength) map[d - 1] += monthly
-      }
-    })
-    return map
-  }, [paySources, monthLength])
-
+  // compute per-day assigned totals from tickets only (single source of truth)
   const assignedTotalsByDay = useMemo(() => {
     const map = Array.from({ length: monthLength }, () => 0)
     tickets.forEach(t => {
@@ -178,13 +92,51 @@ export default function Budget({ budgetAmount, tickets, setTickets, paySources =
   const totalAssigned = assignedTotalsByDay.reduce((s, x) => s + x, 0)
   const averagePerDay = (Math.max(0, budgetAmount - totalAssigned) / monthLength) || 0
 
-  const weeks = useMemo(() => {
-    const result = []
-    for (let i = 0; i < days.length; i += 7) {
-      result.push(days.slice(i, i + 7))
-    }
-    return result
-  }, [days])
+  function addTicket() {
+    const t = { id: Date.now(), name: 'Ticket', amount: '', day: null }
+    setTickets([...tickets, t])
+  }
+
+  function updateTicket(id, patch) {
+    setTickets(tickets.map(t => t.id === id ? { ...t, ...patch } : t))
+  }
+
+  function assignTicketToDay(ticketId, dayNumber) {
+    // simply update the ticket's day field; assigned totals are derived from tickets
+    updateTicket(ticketId, { day: dayNumber })
+  }
+
+  function setMonthDays(n) {
+    setMonthLength(n)
+  }
+
+  // compute paydays for the month from paySources
+  const paydaysMap = useMemo(() => {
+    const map = Array.from({ length: monthLength }, () => 0)
+    paySources.forEach(p => {
+      if (p.type === 'fixed' && Number(p.amount)) {
+        const daysList = (p.days || '').toString().split(',').map(s => Number(s.trim())).filter(Boolean)
+        daysList.forEach(d => { if (d >= 1 && d <= monthLength) map[d - 1] += Number(p.amount) })
+      }
+      if (p.type === 'interval' && Number(p.amount) && Number(p.intervalWeeks) && Number(p.anchorDay)) {
+        // place pays starting from anchorDay every intervalWeeks until month end (approx)
+        let day = Number(p.anchorDay)
+        const step = Number(p.intervalWeeks) * 7
+        while (day <= monthLength) {
+          if (day >= 1 && day <= monthLength) map[day - 1] += Number(p.amount)
+          day += step
+        }
+      }
+      if (p.type === 'hourly' && Number(p.wage) && Number(p.hoursPerWeek)) {
+        // compute monthly amount and place on anchorDay
+        const annual = Number(p.wage) * Number(p.hoursPerWeek) * 52
+        const monthly = annual / 12
+        const d = Number(p.anchorDay) || 1
+        if (d >= 1 && d <= monthLength) map[d - 1] += monthly
+      }
+    })
+    return map
+  }, [paySources, monthLength])
 
   return (
     <div className="card">
@@ -206,19 +158,17 @@ export default function Budget({ budgetAmount, tickets, setTickets, paySources =
           <div key={t.id} className="ticket">
             <input value={t.name} onChange={e => updateTicket(t.id, { name: e.target.value })} />
             <input type="number" value={t.amount} onChange={e => updateTicket(t.id, { amount: e.target.value === '' ? '' : Number(e.target.value) })} min="0" />
-            <label>
-              Assign to day
+            <label>Assign to day
               <select value={t.day || ''} onChange={e => assignTicketToDay(t.id, e.target.value === '' ? null : Number(e.target.value))}>
                 <option value="">(none)</option>
-                {days.filter(d => !d.isPadding).map(d => (
-                  <option key={d.day} value={d.day}>{d.day}</option>
-                ))}
+                {days.map(d => <option key={d.day} value={d.day}>{d.day}</option>)}
               </select>
             </label>
           </div>
         ))}
       </div>
 
+      <h3>{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
       <div className="calendar">
         <div className="week-header">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
@@ -226,16 +176,38 @@ export default function Budget({ budgetAmount, tickets, setTickets, paySources =
           ))}
         </div>
         <div className="weeks">
-          {weeks.map((week, index) => (
-            <WeekRow
-              key={index}
-              week={week}
-              weekIndex={index}
-              paySourcesByDay={paySourcesByDay}
-              assignedTotalsByDay={assignedTotalsByDay}
-              averagePerDay={averagePerDay}
-              tickets={tickets}
-            />
+          {days.reduce((weeks, day, i) => {
+            const weekIndex = Math.floor(i / 7)
+            if (!weeks[weekIndex]) {
+              weeks[weekIndex] = []
+            }
+            weeks[weekIndex].push(day)
+            return weeks
+          }, []).map((week, wi) => (
+            <div key={wi} className="week-row">
+              {week.map((d, i) => {
+                const idx = wi * 7 + i
+                return (
+                  <div key={`${d.date.getMonth()}-${d.day}`} className={`day ${d.isToday ? 'today' : ''} ${d.isPadding ? 'padding' : ''}`}>
+                    <div className="day-header">
+                      <span className="day-number">{d.day}</span>
+                    </div>
+                    {!d.isPadding && (
+                      <>
+                        {paydaysMap[idx] ? <div className="payday">Pay: ${paydaysMap[idx].toFixed(2)}</div> : null}
+                        <div>Assigned: ${assignedTotalsByDay[idx].toFixed(2)}</div>
+                        <div>Daily avg remaining: ${averagePerDay.toFixed(2)}</div>
+                        <div>
+                          {tickets.filter(t => t.day === d.day).map(a => (
+                            <div key={a.id} className="ticket-small">{a.name}: ${Number(a.amount || 0).toFixed(2)}</div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           ))}
         </div>
       </div>

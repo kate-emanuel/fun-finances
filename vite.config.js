@@ -1,14 +1,18 @@
+// vite.config.js
 import { defineConfig } from 'vite'
 
-// https://kate-emanuel.github.io/fun-finances/
-export default defineConfig({
-  base: '/fun-finances/',
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? '/fun-finances/' : '/',
+  server: {
+    base: '/',
+  },
   build: {
     outDir: 'dist',
+    target: 'esnext',
     rollupOptions: {
       input: {
-        main: './index.html'
+        main: new URL('./index.html', import.meta.url).pathname
       }
     }
   }
-})
+}))

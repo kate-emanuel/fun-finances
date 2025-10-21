@@ -92,6 +92,23 @@ select:focus {
   border: 1px solid var(--border);
 }
 
+.month-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.month-header h3 {
+  margin: 0;
+  color: var(--accent);
+}
+
+.month-header div {
+  color: var(--text-light);
+  font-size: 0.875rem;
+}
+
 .days {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -104,11 +121,36 @@ select:focus {
   padding: 16px;
   border-radius: 12px;
   border: 1px solid var(--border);
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.day.today {
+  background: rgba(79, 70, 229, 0.05);
+  border-color: var(--accent-light);
 }
 
 .day:hover {
   background: rgba(248, 250, 252, 1);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 0.875rem;
+}
+
+.day-number {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.day-name {
+  color: var(--text-light);
 }
 
 .ticket-small {

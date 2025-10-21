@@ -1,13 +1,41 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 
-function buildDays(monthLength = 30) {
-  return Array.from({ length: monthLength }, (_, i) => ({ day: i + 1 }))
+function getDaysInMonth(month, year) {
+  return new Date(year, month + 1, 0).getDate()
+}
+
+function buildDays(month, year) {
+  const daysInMonth = getDaysInMonth(month, year)
+  const firstDay = new Date(year, month, 1)
+  
+  return Array.from({ length: daysInMonth }, (_, i) => {
+    const date = new Date(year, month, i + 1)
+    return {
+      day: i + 1,
+      date,
+      dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+      isToday: date.toDateString() === new Date().toDateString()
+    }
+  })
 }
 
 export default function Budget({ budgetAmount, tickets, setTickets, paySources = [], effectiveIncome = 0 }) {
-  const [monthLength, setMonthLength] = useState(30)
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [monthLength, setMonthLength] = useState(getDaysInMonth(currentDate.getMonth(), currentDate.getFullYear()))
 
-  const days = useMemo(() => buildDays(monthLength), [monthLength])
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date()
+      if (now.getMonth() !== currentDate.getMonth() || now.getFullYear() !== currentDate.getFullYear()) {
+        setCurrentDate(now)
+        setMonthLength(getDaysInMonth(now.getMonth(), now.getFullYear()))
+      }
+    }, 3600000) // Check every hour
+    return () => clearInterval(interval)
+  }, [currentDate])
+
+  const days = useMemo(() => buildDays(currentDate.getMonth(), currentDate.getFullYear()), 
+    [currentDate])
 
   // compute per-day assigned totals from tickets only (single source of truth)
   const assignedTotalsByDay = useMemo(() => {
@@ -74,9 +102,10 @@ export default function Budget({ budgetAmount, tickets, setTickets, paySources =
     <div className="card">
       <h2>Budget</h2>
       <div className="row">
-        <label>Month days
-          <input type="number" value={monthLength} onChange={e => setMonthDays(Number(e.target.value) || 30)} min="28" max="31" />
-        </label>
+        <div className="month-header">
+          <h3>{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
+          <div>{monthLength} days</div>
+        </div>
         <div>Budget after savings & deductions: ${budgetAmount.toFixed(2)}</div>
       </div>
 
@@ -99,7 +128,7 @@ export default function Budget({ budgetAmount, tickets, setTickets, paySources =
         ))}
       </div>
 
-      <h3>Calendar</h3>
+      <h3>{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
       <div className="calendar">
         {(() => {
           const weeks = []
@@ -111,8 +140,11 @@ export default function Budget({ budgetAmount, tickets, setTickets, paySources =
               {week.map((d, i) => {
                 const idx = wi * 7 + i
                 return (
-                  <div key={d.day} className="day">
-                    <div className="day-header">Day {d.day}</div>
+                  <div key={d.day} className={`day ${d.isToday ? 'today' : ''}`}>
+                    <div className="day-header">
+                      <span className="day-number">{d.day}</span>
+                      <span className="day-name">{d.dayName}</span>
+                    </div>
                     {paydaysMap[idx] ? <div className="payday">Pay: ${paydaysMap[idx].toFixed(2)}</div> : null}
                     <div>Assigned: ${assignedTotalsByDay[idx].toFixed(2)}</div>
                     <div>Daily avg remaining: ${averagePerDay.toFixed(2)}</div>

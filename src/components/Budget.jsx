@@ -7,16 +7,56 @@ function getDaysInMonth(month, year) {
 function buildDays(month, year) {
   const daysInMonth = getDaysInMonth(month, year)
   const firstDay = new Date(year, month, 1)
+  const firstDayOfWeek = firstDay.getDay() // 0 = Sunday, 1 = Monday, etc.
   
-  return Array.from({ length: daysInMonth }, (_, i) => {
+  // Calculate padding days from previous month
+  const prevMonth = month === 0 ? 11 : month - 1
+  const prevYear = month === 0 ? year - 1 : year
+  const prevMonthDays = getDaysInMonth(prevMonth, prevYear)
+  
+  const paddingDaysBefore = Array.from({ length: firstDayOfWeek }, (_, i) => {
+    const day = prevMonthDays - firstDayOfWeek + i + 1
+    const date = new Date(prevYear, prevMonth, day)
+    return {
+      day,
+      date,
+      dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+      isPadding: true,
+      isToday: date.toDateString() === new Date().toDateString()
+    }
+  })
+
+  // Current month days
+  const currentDays = Array.from({ length: daysInMonth }, (_, i) => {
     const date = new Date(year, month, i + 1)
     return {
       day: i + 1,
       date,
       dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+      isPadding: false,
       isToday: date.toDateString() === new Date().toDateString()
     }
   })
+
+  // Calculate padding days for next month
+  const totalDaysSoFar = paddingDaysBefore.length + daysInMonth
+  const paddingDaysAfterLength = Math.ceil(totalDaysSoFar / 7) * 7 - totalDaysSoFar
+  
+  const nextMonth = month === 11 ? 0 : month + 1
+  const nextYear = month === 11 ? year + 1 : year
+  
+  const paddingDaysAfter = Array.from({ length: paddingDaysAfterLength }, (_, i) => {
+    const date = new Date(nextYear, nextMonth, i + 1)
+    return {
+      day: i + 1,
+      date,
+      dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+      isPadding: true,
+      isToday: date.toDateString() === new Date().toDateString()
+    }
+  })
+
+  return [...paddingDaysBefore, ...currentDays, ...paddingDaysAfter]
 }
 
 export default function Budget({ budgetAmount, tickets, setTickets, paySources = [], effectiveIncome = 0 }) {
@@ -130,35 +170,46 @@ export default function Budget({ budgetAmount, tickets, setTickets, paySources =
 
       <h3>{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
       <div className="calendar">
-        {(() => {
-          const weeks = []
-          for (let i = 0; i < days.length; i += 7) {
-            weeks.push(days.slice(i, i + 7))
-          }
-          return weeks.map((week, wi) => (
+        <div className="week-header">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+            <div key={day} className="weekday-header">{day}</div>
+          ))}
+        </div>
+        <div className="weeks">
+          {days.reduce((weeks, day, i) => {
+            const weekIndex = Math.floor(i / 7)
+            if (!weeks[weekIndex]) {
+              weeks[weekIndex] = []
+            }
+            weeks[weekIndex].push(day)
+            return weeks
+          }, []).map((week, wi) => (
             <div key={wi} className="week-row">
               {week.map((d, i) => {
                 const idx = wi * 7 + i
                 return (
-                  <div key={d.day} className={`day ${d.isToday ? 'today' : ''}`}>
+                  <div key={`${d.date.getMonth()}-${d.day}`} className={`day ${d.isToday ? 'today' : ''} ${d.isPadding ? 'padding' : ''}`}>
                     <div className="day-header">
                       <span className="day-number">{d.day}</span>
-                      <span className="day-name">{d.dayName}</span>
                     </div>
-                    {paydaysMap[idx] ? <div className="payday">Pay: ${paydaysMap[idx].toFixed(2)}</div> : null}
-                    <div>Assigned: ${assignedTotalsByDay[idx].toFixed(2)}</div>
-                    <div>Daily avg remaining: ${averagePerDay.toFixed(2)}</div>
-                    <div>
-                      {tickets.filter(t => t.day === d.day).map(a => (
-                        <div key={a.id} className="ticket-small">{a.name}: ${Number(a.amount || 0).toFixed(2)}</div>
-                      ))}
-                    </div>
+                    {!d.isPadding && (
+                      <>
+                        {paydaysMap[idx] ? <div className="payday">Pay: ${paydaysMap[idx].toFixed(2)}</div> : null}
+                        <div>Assigned: ${assignedTotalsByDay[idx].toFixed(2)}</div>
+                        <div>Daily avg remaining: ${averagePerDay.toFixed(2)}</div>
+                        <div>
+                          {tickets.filter(t => t.day === d.day).map(a => (
+                            <div key={a.id} className="ticket-small">{a.name}: ${Number(a.amount || 0).toFixed(2)}</div>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
                 )
               })}
             </div>
-          ))
-        })()}
+          ))}
+        </div>
       </div>
     </div>
   )

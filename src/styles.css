@@ -123,6 +123,15 @@ select:focus {
   border: 1px solid var(--border);
   transition: all 0.2s ease;
   position: relative;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+}
+
+.day.padding {
+  background: rgba(248, 250, 252, 0.4);
+  border-color: var(--border);
+  opacity: 0.5;
 }
 
 .day.today {
@@ -130,7 +139,7 @@ select:focus {
   border-color: var(--accent-light);
 }
 
-.day:hover {
+.day:not(.padding):hover {
   background: rgba(248, 250, 252, 1);
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
@@ -162,11 +171,33 @@ select:focus {
 .calendar {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+
+.weeks {
+  display: flex;
+  flex-direction: column;
   gap: 16px;
 }
 
+.week-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+.weekday-header {
+  text-align: center;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--text-light);
+  padding: 4px;
+}
+
 .week-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
   gap: 16px;
 }
 

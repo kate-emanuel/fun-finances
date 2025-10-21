@@ -1,17 +1,150 @@
-:root{--bg:#f6f8fb;--card:#fff;--accent:#0366d6}
-body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:var(--bg);color:#0b2545}
-.container{max-width:980px;margin:24px auto;padding:16px}
-.forms{display:flex;gap:12px}
-.card{background:var(--card);padding:12px;border-radius:8px;box-shadow:0 1px 3px rgba(11,37,69,0.06);flex:1}
-.row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-input[type=number],input[type=text],select{padding:6px;border-radius:6px;border:1px solid #dfe6ef}
-.ticket{display:flex;gap:8px;align-items:center;margin-bottom:6px}
-.days{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:12px}
-.day{background:#fbfdff;padding:8px;border-radius:6px;border:1px solid #e9f0fb}
-.ticket-small{font-size:0.9em;padding:4px 0}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
-.calendar{display:flex;flex-direction:column;gap:8px}
-.week-row{display:flex;gap:8px}
-.week-row .day{flex:1;min-width:100px}
-.payday{background:linear-gradient(90deg,#e6f7ff,#f0fcf8);padding:4px;border-radius:4px;margin-bottom:6px;font-weight:600;color:var(--accent)}
-.card.small{padding:8px;background:#fffefc;border:1px solid #f2e9e0}
+:root {
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --accent: #4f46e5;
+  --accent-light: #818cf8;
+  --text: #1e293b;
+  --text-light: #64748b;
+  --border: #e2e8f0;
+  --success: #10b981;
+  --warning: #f59e0b;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.container {
+  max-width: 1080px;
+  margin: 32px auto;
+  padding: 0 24px;
+}
+
+.forms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.card {
+  background: var(--card);
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+}
+
+h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 1rem;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+input[type=number],
+input[type=text],
+select {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  font-size: 0.95rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input[type=number]:focus,
+input[type=text]:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent-light);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.ticket {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(248, 250, 252, 0.5);
+  border: 1px solid var(--border);
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.day {
+  background: rgba(248, 250, 252, 0.8);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  transition: background-color 0.2s;
+}
+
+.day:hover {
+  background: rgba(248, 250, 252, 1);
+}
+
+.ticket-small {
+  font-size: 0.875rem;
+  padding: 6px 0;
+  color: var(--text-light);
+}
+
+.calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.week-row {
+  display: flex;
+  gap: 16px;
+}
+
+.week-row .day {
+  flex: 1;
+  min-width: 120px;
+}
+
+.payday {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(129, 140, 248, 0.1));
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--accent);
+  border: 1px solid rgba(79, 70, 229, 0.2);
+}
+
+.card.small {
+  padding: 16px;
+  background: rgba(248, 250, 252, 0.8);
+  border: 1px solid var(--border);
+}

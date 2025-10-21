@@ -1,5 +1,101 @@
 import React, { useState, useMemo, useEffect } from 'react'
 
+const CalendarDay = React.memo(({ day, payAmount, assignedAmount, confirmedSpending, remainingBudget, tickets, onConfirmSpending }) => {
+  const [isEditing, setIsEditing] = useState(false)
+  const [spendingAmount, setSpendingAmount] = useState(confirmedSpending || '')
+  
+  const handleConfirm = () => {
+    if (spendingAmount === '') return
+    onConfirmSpending(day.day, Number(spendingAmount))
+    setIsEditing(false)
+  }
+
+  return (
+    <div className={`day ${day.isToday ? 'today' : ''} ${day.isPadding ? 'padding' : ''}`}>
+      <div className="day-header">
+        <span className="day-number">{day.day}</span>
+      </div>
+      {!day.isPadding && (
+        <div className="day-content">
+          {Number(payAmount) > 0 && <div className="payday">Pay: ${(Number(payAmount) || 0).toFixed(2)}</div>}
+          <div className="budget-row">
+            <span className="budget-label">Assigned:</span>
+            <span className="budget-value">${(Number(assignedAmount) || 0).toFixed(2)}</span>
+          </div>
+          <div className="budget-row">
+            <span className="budget-label">Remaining:</span>
+            <span className="budget-value">${(Number(remainingBudget) || 0).toFixed(2)}</span>
+          </div>
+          <div className="spending-section">
+            {!isEditing ? (
+              <div onClick={() => setIsEditing(true)} className="spending-display">
+                {confirmedSpending !== null ? (
+                  <div className="confirmed-spending">
+                    Spent: ${(Number(confirmedSpending) || 0).toFixed(2)}
+                  </div>
+                ) : (
+                  <button className="add-spending-btn">Add spending</button>
+                )}
+              </div>
+            ) : (
+              <div className="spending-input">
+                <input
+                  type="number"
+                  value={spendingAmount}
+                  onChange={(e) => setSpendingAmount(e.target.value)}
+                  placeholder="Enter amount"
+                  autoFocus
+                />
+                <button onClick={handleConfirm}>✓</button>
+                <button onClick={() => {
+                  setIsEditing(false)
+                  setSpendingAmount(confirmedSpending || '')
+                }}>✕</button>
+              </div>
+            )}
+          </div>
+          {/* Tickets are now only reflected in 'Assigned' value, not listed below */}
+        </div>
+      )}
+    </div>
+  )
+})
+
+const WeekRow = React.memo(({ week, weekIndex, paySourcesByDay, assignedTotalsByDay, confirmedSpendingByDay, remainingBudgetByDay, tickets, onConfirmSpending }) => {
+  return (
+    <div className="week-row">
+  {(Array.isArray(week) ? week : []).map((day, dayIndex) => {
+        const idx = day.isPadding ? -1 : weekIndex * 7 + dayIndex;
+        const payAmount = idx >= 0 ? (paySourcesByDay[idx] || 0) : 0;
+        const assignedAmount = idx >= 0 ? (assignedTotalsByDay[idx] || 0) : 0;
+        const confirmedSpending = idx >= 0 ? confirmedSpendingByDay[idx] : null;
+        const remainingBudget = idx >= 0 ? remainingBudgetByDay[idx] : 0;
+
+        // Find the index in the filtered days array for non-padding days
+        const nonPaddingDays = week.filter(d => !d.isPadding);
+        const nonPaddingIdx = !day.isPadding ? nonPaddingDays.findIndex(d => d.day === day.day) + weekIndex * 7 : -1;
+
+        return (
+          <CalendarDay
+            key={`${day.date.getMonth()}-${day.day}`}
+            day={day}
+            payAmount={payAmount}
+            assignedAmount={assignedAmount}
+            confirmedSpending={confirmedSpending}
+            remainingBudget={remainingBudget}
+            tickets={tickets}
+            onConfirmSpending={(actualDay, amount) => {
+              if (!day.isPadding) {
+                onConfirmSpending(day.day, amount);
+              }
+            }}
+          />
+        );
+      })}
+    </div>
+  )
+})
+
 function getDaysInMonth(month, year) {
   return new Date(year, month + 1, 0).getDate()
 }
@@ -59,57 +155,10 @@ function buildDays(month, year) {
   return [...paddingDaysBefore, ...currentDays, ...paddingDaysAfter]
 }
 
-function CalendarDay({ day, payAmount, assignedAmount, averagePerDay, tickets }) {
-  return (
-    <div className={`day ${day.isToday ? 'today' : ''} ${day.isPadding ? 'padding' : ''}`}>
-      <div className="day-header">
-        <span className="day-number">{day.day}</span>
-        {day.isToday && <span className="today-label">Today</span>}
-      </div>
-      {!day.isPadding && (
-        <>
-          {payAmount > 0 && <div className="payday">Pay: ${payAmount.toFixed(2)}</div>}
-          <div>Assigned: ${assignedAmount.toFixed(2)}</div>
-          <div>Daily avg: ${averagePerDay.toFixed(2)}</div>
-          <div>
-            {tickets.filter(t => t.day === day.day).map(ticket => (
-              <div key={ticket.id} className="ticket-small">
-                {ticket.name}: ${Number(ticket.amount || 0).toFixed(2)}
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  )
-}
-
-function WeekRow({ week, weekIndex, paySourcesByDay, assignedTotalsByDay, averagePerDay, tickets }) {
-  return (
-    <div className="week-row">
-      {week.map((day, dayIndex) => {
-        const idx = day.isPadding ? -1 : weekIndex * 7 + dayIndex
-        const payAmount = idx >= 0 ? (paySourcesByDay[idx] || 0) : 0
-        const assignedAmount = idx >= 0 ? (assignedTotalsByDay[idx] || 0) : 0
-        
-        return (
-          <CalendarDay
-            key={`${day.date.getMonth()}-${day.day}`}
-            day={day}
-            payAmount={payAmount}
-            assignedAmount={assignedAmount}
-            averagePerDay={averagePerDay}
-            tickets={tickets}
-          />
-        )
-      })}
-    </div>
-  )
-}
-
 export default function Budget({ budgetAmount, tickets, setTickets, paySources = [], effectiveIncome = 0 }) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [monthLength, setMonthLength] = useState(getDaysInMonth(currentDate.getMonth(), currentDate.getFullYear()))
+  const [confirmedSpending, setConfirmedSpending] = useState({})
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -164,19 +213,60 @@ export default function Budget({ budgetAmount, tickets, setTickets, paySources =
     return map
   }, [paySources, monthLength])
 
+  // Map tickets to the correct calendar index, including padding days
   const assignedTotalsByDay = useMemo(() => {
-    const map = Array.from({ length: monthLength }, () => 0)
+    const map = Array.from({ length: days.length }, () => null);
     tickets.forEach(t => {
       if (t.day && Number(t.amount)) {
-        const idx = Number(t.day) - 1
-        if (idx >= 0 && idx < monthLength) map[idx] += Number(t.amount)
+        // Find the index in days array for the ticket's day
+        const idx = days.findIndex(d => !d.isPadding && d.day === t.day);
+        if (idx >= 0) map[idx] = Number(t.amount);
       }
-    })
-    return map
-  }, [tickets, monthLength])
+    });
+    return map;
+  }, [tickets, days]);
 
-  const totalAssigned = assignedTotalsByDay.reduce((s, x) => s + x, 0)
-  const averagePerDay = (Math.max(0, budgetAmount - totalAssigned) / monthLength) || 0
+  // Map confirmed spending to the correct calendar index, including padding days
+  const confirmedSpendingByDay = useMemo(() => {
+    const map = Array.from({ length: days.length }, () => null);
+    Object.entries(confirmedSpending).forEach(([day, amount]) => {
+      const idx = days.findIndex(d => !d.isPadding && d.day === Number(day));
+      if (idx >= 0) {
+        map[idx] = Number(amount);
+      }
+    });
+    return map;
+  }, [confirmedSpending, days]);
+
+  // Calculate total confirmed spending
+  const totalConfirmedSpending = useMemo(() => {
+    return Object.values(confirmedSpending).reduce((sum, amount) => sum + Number(amount), 0)
+  }, [confirmedSpending])
+
+  // Disperse the original budget evenly among all days of the month
+  // Subtract assigned tickets and confirmed spending from each day's budget
+  // Divide the budget evenly among all actual days of the month
+  // Calculate daily budget for each day (including padding)
+  const nonPaddingCount = days.filter(d => !d.isPadding).length;
+  const originalDailyBudget = nonPaddingCount > 0 ? (Number(budgetAmount) || 0) / nonPaddingCount : 0;
+  const remainingBudgetByDay = useMemo(() => {
+    return days.map((d, i) => {
+      if (d.isPadding) return null;
+      let value = originalDailyBudget;
+      value -= assignedTotalsByDay[i] || 0;
+      if (confirmedSpendingByDay[i] != null) {
+        value -= confirmedSpendingByDay[i];
+      }
+      return Math.max(0, value);
+    });
+  }, [budgetAmount, assignedTotalsByDay, confirmedSpendingByDay, days]);
+
+  const handleConfirmSpending = (day, amount) => {
+    setConfirmedSpending(prev => ({
+      ...prev,
+      [day]: amount
+    }))
+  }
 
   const weeks = useMemo(() => {
     const result = []
@@ -194,7 +284,9 @@ export default function Budget({ budgetAmount, tickets, setTickets, paySources =
           <h3>{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
           <div>{monthLength} days</div>
         </div>
-        <div>Budget after savings & deductions: ${budgetAmount.toFixed(2)}</div>
+        <div>Budget after savings & deductions: ${(Number(budgetAmount) || 0).toFixed(2)}</div>
+        <div>Total spent: ${totalConfirmedSpending.toFixed(2)}</div>
+        <div>Remaining: ${Math.max(0, (Number(budgetAmount) || 0) - totalConfirmedSpending).toFixed(2)}</div>
       </div>
 
       <div className="row">
@@ -202,7 +294,7 @@ export default function Budget({ budgetAmount, tickets, setTickets, paySources =
       </div>
 
       <div className="tickets">
-        {tickets.map(t => (
+        {(Array.isArray(tickets) ? tickets : []).map(t => (
           <div key={t.id} className="ticket">
             <input value={t.name} onChange={e => updateTicket(t.id, { name: e.target.value })} />
             <input type="number" value={t.amount} onChange={e => updateTicket(t.id, { amount: e.target.value === '' ? '' : Number(e.target.value) })} min="0" />
@@ -210,7 +302,7 @@ export default function Budget({ budgetAmount, tickets, setTickets, paySources =
               Assign to day
               <select value={t.day || ''} onChange={e => assignTicketToDay(t.id, e.target.value === '' ? null : Number(e.target.value))}>
                 <option value="">(none)</option>
-                {days.filter(d => !d.isPadding).map(d => (
+                {(Array.isArray(days) ? days : []).filter(d => !d.isPadding).map(d => (
                   <option key={d.day} value={d.day}>{d.day}</option>
                 ))}
               </select>
@@ -233,8 +325,10 @@ export default function Budget({ budgetAmount, tickets, setTickets, paySources =
               weekIndex={index}
               paySourcesByDay={paySourcesByDay}
               assignedTotalsByDay={assignedTotalsByDay}
-              averagePerDay={averagePerDay}
+              confirmedSpendingByDay={confirmedSpendingByDay}
+              remainingBudgetByDay={remainingBudgetByDay}
               tickets={tickets}
+              onConfirmSpending={handleConfirmSpending}
             />
           ))}
         </div>

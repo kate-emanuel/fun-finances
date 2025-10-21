@@ -3,8 +3,9 @@ import IncomeForm from './components/IncomeForm'
 import DeductionsForm from './components/DeductionsForm'
 import SavingsForm from './components/SavingsForm'
 import Budget from './components/Budget'
+import GoalBudget from './components/GoalBudget'
 import PaydaysForm from './components/PaydaysForm'
-
+// ...existing code...
 export default function App() {
   const [income, setIncome] = useState(0)
   const [deductions, setDeductions] = useState([])
@@ -51,24 +52,54 @@ export default function App() {
     return (Number(income) || 0) + paySourcesMonthly
   }, [income, paySourcesMonthly])
 
+  const [tab, setTab] = useState('budget');
+  const [goalLineItems, setGoalLineItems] = useState([]);
+
   return (
     <div className="container">
       <h1>Fun Finances</h1>
-
-      <div className="forms">
-        <IncomeForm income={income} setIncome={setIncome} />
-        <DeductionsForm deductions={deductions} setDeductions={setDeductions} />
-        <SavingsForm savings={savings} setSavings={setSavings} />
-        <PaydaysForm paySources={paySources} setPaySources={setPaySources} />
+      <div style={{ marginBottom: 24 }}>
+        <button
+          onClick={() => setTab('budget')}
+          style={{ marginRight: 8, fontWeight: tab === 'budget' ? 'bold' : 'normal' }}
+        >Budget</button>
+        <button
+          onClick={() => setTab('goal')}
+          style={{ fontWeight: tab === 'goal' ? 'bold' : 'normal' }}
+        >Goal Budget</button>
       </div>
-
-      <Budget
-        budgetAmount={afterSavings}
-        tickets={tickets}
-        setTickets={setTickets}
-        paySources={paySources}
-        effectiveIncome={effectiveIncome}
-      />
+      {tab === 'budget' && (
+        <>
+          <div className="forms">
+            <IncomeForm income={income} setIncome={setIncome} />
+            <DeductionsForm deductions={deductions} setDeductions={setDeductions} />
+            <SavingsForm savings={savings} setSavings={setSavings} />
+            <PaydaysForm paySources={paySources} setPaySources={setPaySources} />
+          </div>
+          <Budget
+            budgetAmount={afterSavings}
+            tickets={tickets}
+            setTickets={setTickets}
+            paySources={paySources}
+            effectiveIncome={effectiveIncome}
+            goalLineItems={goalLineItems}
+          />
+          <div className="goal-budget-summary">
+            <h2>Goal Budget Summary</h2>
+            {['fixed','variable','debt','savings','taxes','extra'].map(cat => (
+              <div key={cat} style={{ marginBottom: 12 }}>
+                <strong>{cat.charAt(0).toUpperCase() + cat.slice(1)}:</strong>
+                <ul>
+                  {goalLineItems.filter(item => item.category === cat).map((item, idx) => (
+                    <li key={idx}>{item.name}: ${item.amount.toFixed(2)}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+      {tab === 'goal' && <GoalBudget lineItems={goalLineItems} setLineItems={setGoalLineItems} />}
     </div>
   )
 }

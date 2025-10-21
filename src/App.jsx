@@ -28,7 +28,7 @@ export default function App() {
     // fixed: days comma list with amount per pay -> monthly sum
     // interval: amount per pay with intervalWeeks -> monthly equiv = amount * (52 / (intervalWeeks * 12)) approx -> better: amount * (52 / intervalWeeks) / 12
     // hourly: hoursPerWeek * wage * (52 / 12) / frequencyWeeks
-    let total = 0
+    let total = 0;
     (paySources || []).forEach(p => {
       if (p.type === 'fixed' && Number(p.amount)) {
         total += Number(p.amount) * (p.days ? p.days.toString().split(',').filter(Boolean).length : 0)

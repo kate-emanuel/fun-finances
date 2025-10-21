@@ -4,10 +4,43 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Fun Finances</title>
-    <script type="module" crossorigin src="/fun-finances/assets/index-cVBndSWG.js"></script>
+    <script type="module" crossorigin src="/fun-finances/assets/index-DIEP-fpO.js"></script>
     <link rel="stylesheet" crossorigin href="/fun-finances/assets/index-BwjzakJJ.css">
   </head>
   <body>
+    <div id="status" style="padding:12px;background:#fff3bf;border-radius:6px;margin:12px;">Loading app... If you still see this after the page loads, JavaScript failed to run or assets didn't load. Open DevTools → Console and Network to inspect errors.</div>
+    <script>
+      // Inline error logger: write first error into #status so it's visible without DevTools
+      (function () {
+        function show(msg) {
+          try {
+            var s = document.getElementById('status')
+            if (!s) return
+            s.textContent = 'Error: ' + msg
+            s.style.background = '#ffecec'
+            s.style.color = '#900'
+            s.style.border = '1px solid #f5c2c2'
+          } catch (e) {
+            // nothing
+          }
+        }
+
+        window.addEventListener('error', function (ev) {
+          var m = ev && ev.error && ev.error.stack ? ev.error.stack : (ev.message || String(ev))
+          show(m)
+        })
+
+        window.addEventListener('unhandledrejection', function (ev) {
+          var m = ev && ev.reason && ev.reason.stack ? ev.reason.stack : (ev.reason || String(ev))
+          show(m)
+        })
+
+        // also catch module load failures
+        window.addEventListener('load', function () {
+          // no-op; presence ensures load listeners are installed early
+        })
+      })()
+    </script>
     <div id="root"></div>
   </body>
 </html>

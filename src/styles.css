@@ -1,124 +1,16 @@
-.day-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
-}
-.budget-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.95rem;
-  margin-bottom: 2px;
-}
-.budget-label {
-  color: var(--text-light);
-  font-weight: 500;
-}
-.budget-value {
-  font-weight: 600;
-  color: var(--accent);
-}
-.spending-section {
-  margin-top: 6px;
-  margin-bottom: 2px;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-.tickets-list {
-  margin-top: 6px;
-  padding-top: 4px;
-  border-top: 1px solid var(--border);
-}
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
 :root {
-  --bg: #f8fafc;
+  --bg: #f6fff7;
   --card: #ffffff;
-  --accent: #4f46e5;
-  --accent-light: #818cf8;
+  --accent: #22c55e;
+  --accent-light: #bbf7d0;
+  --accent-dark: #166534;
   --text: #1e293b;
   --text-light: #64748b;
-  --border: #e2e8f0;
-  --success: #10b981;
+  --border: #d1fae5;
+  --success: #22c55e;
   --warning: #f59e0b;
-}
-
-.spending-display {
-  margin-top: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.spending-display:hover {
-  opacity: 0.8;
-}
-
-.confirmed-spending {
-  font-size: 0.9rem;
-  padding: 6px 10px;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  color: rgb(6, 95, 70);
-  border-radius: 6px;
-}
-
-.add-spending-btn {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 6px 10px;
-  background: rgba(79, 70, 229, 0.1);
-  border: 1px dashed rgba(79, 70, 229, 0.3);
-  color: var(--accent);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-}
-
-.add-spending-btn:hover {
-  background: rgba(79, 70, 229, 0.15);
-  border-color: rgba(79, 70, 229, 0.4);
-}
-
-.spending-input {
-  margin-top: 8px;
-  display: flex;
-  gap: 4px;
-}
-
-.spending-input input {
-  flex: 1;
-  padding: 6px 8px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  font-size: 0.9rem;
-}
-
-.spending-input button {
-  padding: 6px 8px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.spending-input button:first-of-type {
-  color: var(--success);
-  border-color: rgba(16, 185, 129, 0.2);
-  background: rgba(16, 185, 129, 0.1);
-}
-
-.spending-input button:last-of-type {
-  color: var(--warning);
-  border-color: rgba(245, 158, 11, 0.2);
-  background: rgba(245, 158, 11, 0.1);
-}
-
-.spending-input button:hover {
-  filter: brightness(0.95);
 }
 
 body {
@@ -135,38 +27,89 @@ body {
   padding: 0 24px;
 }
 
-.forms {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1mm;
-  margin-bottom: 32px;
-}
-
 .card {
   background: var(--card);
   padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1);
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(34,197,94,0.08), 0 1px 2px -1px rgba(34,197,94,0.08);
+  border: 1px solid var(--accent-light);
   transition: transform 0.2s, box-shadow 0.2s;
 }
-
 .card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 24px -2px rgba(34,197,94,0.12), 0 2px 4px -2px rgba(34,197,94,0.10);
 }
 
 h2 {
   font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text);
+  font-weight: 700;
+  color: var(--accent-dark);
   margin: 0 0 1rem;
 }
 
-.row {
+.budget-value {
+  font-weight: 600;
+  color: var(--accent-dark);
+}
+
+.confirmed-spending {
+  font-size: 0.9rem;
+  padding: 6px 10px;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.18);
+  color: var(--accent-dark);
+  border-radius: 8px;
+}
+
+.add-spending-btn {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px dashed var(--accent-light);
+  color: var(--accent-dark);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+.add-spending-btn:hover {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: var(--accent);
+}
+
+.spending-input {
+  margin-top: 8px;
   display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 12px;
+  gap: 4px;
+}
+.spending-input input {
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  font-weight: 600;
+  color: var(--accent-dark);
+  transition: all 0.2s ease;
+}
+.spending-input button {
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.spending-input button:first-of-type {
+  color: var(--accent-dark);
+  border-color: var(--accent-light);
+  background: rgba(34, 197, 94, 0.12);
+}
+.spending-input button:last-of-type {
+  color: var(--warning);
+  border-color: rgba(245, 158, 11, 0.2);
+  background: rgba(245, 158, 11, 0.1);
+}
+.spending-input button:hover {
+  filter: brightness(0.98);
 }
 
 input[type=number],
@@ -181,104 +124,104 @@ select {
   font-size: 0.95rem;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
-
 input[type=number]:focus,
 input[type=text]:focus,
 select:focus {
   outline: none;
-  border-color: var(--accent-light);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
 }
 
-.ticket {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 8px;
-  padding: 8px;
+.day.today {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(22, 101, 52, 0.08));
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.12);
+}
+.today-label {
+  color: var(--accent-dark);
+  background: rgba(34, 197, 94, 0.12);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.payday {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(187, 247, 208, 0.12));
+  color: var(--accent-dark);
+  border: 1px solid var(--accent-light);
+  padding: 8px 12px;
   border-radius: 8px;
-  background: rgba(248, 250, 252, 0.5);
-  border: 1px solid var(--border);
+  margin-bottom: 8px;
+  font-weight: 500;
 }
+/* END OF VALID CSS */
 
-.month-header {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.month-header h3 {
-  margin: 0;
-  color: var(--accent);
-}
-
-.month-header div {
-  color: var(--text-light);
-  font-size: 0.875rem;
-}
-
-.days {
+.calendar {
+  width: 100%;
+  max-width: 2600px;
+  margin-left: auto;
+  margin-right: auto;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 24px;
-  margin-top: 16px;
+  grid-template-rows: auto 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.weeks {
+  display: grid;
+  grid-template-rows: repeat(5, 1fr);
+  gap: 16px;
+}
+
+.week-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+  margin-bottom: 4px;
+  width: 100%;
+}
+
+.week-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+  width: 100%;
 }
 
 .day {
-  background: rgba(248, 250, 252, 0.8);
-  padding: 8px;
+  background: var(--card);
   border-radius: 8px;
   border: 1px solid var(--border);
-  transition: all 0.2s ease;
-  position: relative;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: calc(150px);
+  min-height: calc(150px);
+  width: calc((100% ));
+  max-width: calc((100% ));
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  min-width: 0;
-  min-height: 0;
-  min-width: 150px;
-  min-height: calc(150px + 4mm);
+  justify-content: flex-start;
+  transition: all 0.2s ease;
 }
-
 .day.padding {
-  background: rgba(248, 250, 252, 0.4);
-  border-color: var(--border);
+  background: #f3f3f3;
   opacity: 0.5;
 }
-
 .day.today {
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(99, 102, 241, 0.08));
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(22, 101, 52, 0.08));
   border: 2px solid var(--accent);
-  box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.1);
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.12);
 }
-
-.day.today .day-number {
-  color: var(--accent);
-  font-weight: 600;
-  position: relative;
-}
-
-.day.today .day-number::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--accent);
-  border-radius: 2px;
-}
-
 .day:not(.padding):hover {
-  background: rgba(248, 250, 252, 1);
+  background: #fff;
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
-
 .day-header {
   display: flex;
   flex-direction: column;
@@ -287,79 +230,21 @@ select:focus {
   font-size: 0.875rem;
   gap: 4px;
 }
-
 .day-number {
   font-weight: 500;
   color: var(--text);
   font-size: 1.125rem;
 }
-
 .today-label {
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--accent);
-  background: rgba(79, 70, 229, 0.1);
+  background: rgba(34, 197, 94, 0.1);
   padding: 2px 6px;
   border-radius: 4px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-
 .day-name {
   color: var(--text-light);
-}
-
-.ticket-small {
-  font-size: 0.875rem;
-  padding: 6px 0;
-  color: var(--text-light);
-}
-
-.calendar {
-  width: 100%;
-  max-width: 700px;
-    margin-left: auto;
-    margin-right: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: center;
-}
-
-.weeks {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-    align-items: center;
-}
-
-.week-header {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-  margin-bottom: 4px;
-  width: 100%;
-}
-
-.week-row {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-  width: 100%;
-}
-
-.payday {
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(129, 140, 248, 0.1));
-  padding: 8px 12px;
-  border-radius: 8px;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: var(--accent);
-  border: 1px solid rgba(79, 70, 229, 0.2);
-}
-
-.card.small {
-  padding: 16px;
-  background: rgba(248, 250, 252, 0.8);
-  border: 1px solid var(--border);
 }
